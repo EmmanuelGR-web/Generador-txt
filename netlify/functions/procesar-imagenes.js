@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 exports.handler = async (event) => {
-    console.log("--- INICIANDO FUNCIÓN ---");
+    console.log("--- STARTING FUNCTION ---");
 
     if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
         console.log(`Procesando ${cuerpo.imagenes.length} imágenes...`);
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
         const imageParts = cuerpo.imagenes.map(img => ({
             inlineData: {
