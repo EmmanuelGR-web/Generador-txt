@@ -11,7 +11,7 @@ exports.handler = async (event) => {
 
         // Configurar la API de Gemini (la clave se guarda en las variables de entorno de Netlify)
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // Dar formato a las imágenes para la API
         const imageParts = imagenes.map(img => ({
