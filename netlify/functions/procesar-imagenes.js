@@ -9,11 +9,16 @@ exports.handler = async (event) => {
         const cuerpo = JSON.parse(event.body);
         const imagenes = cuerpo.imagenes;
 
-        // Configurar la API de Gemini (la clave se guarda en las variables de entorno de Netlify)
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+        // Verificar que la clave exista
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY no está configurada en Netlify");
+        }
 
-        // Dar formato a las imágenes para la API
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        
+        // CORRECCIÓN: Usar modelo multimodal
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
         const imageParts = imagenes.map(img => ({
             inlineData: {
                 data: img.data,
@@ -21,11 +26,8 @@ exports.handler = async (event) => {
             }
         }));
 
-        // El Prompt estricto basado en tu ejemplo
-        const prompt = `
-        Sos un asistente de extracción de datos para afiliaciones de una obra social. 
-        Analizá las siguientes imágenes (DNI, recibos de sueldo, notas) y extraé la información solicitada.
-        DEBES generar un texto exactamente con la siguiente estructura, reemplazando los corchetes con los datos extraídos. Si un dato no está en las fotos, poné "Dato no encontrado". No agregues ningún saludo, ni formato Markdown, ni texto extra. Solo esta estructura exacta:
+        const prompt = `Sos un asistente de extracción de datos para afiliaciones de una obra social. Analizá las imágenes (DNI, recibos, notas) y extraé la información.
+        DEBES generar un texto con esta estructura exacta. Si un dato no está, poné "Dato no encontrado". No agregues Markdown ni explicaciones:
 
         DATOS DEL TITULAR
         *Apellido y Nombre del titular: [Dato]
@@ -48,15 +50,13 @@ exports.handler = async (event) => {
         *Aporte calculado: $[Dato]
 
         DATOS DEL GRUPO FAMILIAR
-        [Repetir este bloque por cada familiar encontrado en las imágenes]
         *Apellido y Nombre: [Dato]
         *Parentesco: [Dato]
         *Edad: [Dato] años
         *DNI: [Dato]
         *Fecha de Nacimiento: [DD/MM/AAAA]
         *Altura: [Dato] cm
-        *Peso: [Dato] kg
-        `;
+        *Peso: [Dato] kg`;
 
         const result = await model.generateContent([prompt, ...imageParts]);
         const response = await result.response;
@@ -68,10 +68,11 @@ exports.handler = async (event) => {
         };
 
     } catch (error) {
-        console.error("Error en la IA:", error);
+        console.error("ERROR DETALLADO:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Fallo al procesar las imágenes con la IA." })
+            // Esto es importante: te devuelve el error real al navegador
+            body: JSON.stringify({ error: error.message }) 
         };
     }
 };
