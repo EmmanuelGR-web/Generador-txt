@@ -1,0 +1,53 @@
+:root {
+    --gris-fondo: #f4f4f9;
+    --gris-borde: #ddd;
+    --verde-claro: #e8f5e9;
+    --verde-oscuro: #4caf50;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--gris-fondo);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.contenedor-tarjeta {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+input[type="file"] {
+    margin: 20px 0;
+    width: 100%;
+}
+
+button {
+    background-color: var(--verde-oscuro);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.estado {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #333;
+}
