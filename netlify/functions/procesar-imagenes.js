@@ -18,7 +18,6 @@ exports.handler = async (event) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        // Construir el array de partes: texto + imágenes
         const parts = [
             {
                 text: `Sos un asistente que extrae datos de afiliación a obras sociales desde imágenes de documentos (DNI, recibo de sueldo, notas del afiliado).
@@ -54,8 +53,22 @@ Respondé ÚNICAMENTE con el texto plano con los datos, sin explicaciones adicio
             }))
         ];
 
-        const result = await model.generateContent(parts);
-        const texto = result.response.text();
+        // Reintento automático hasta 3 veces si hay error 503
+        let resultado;
+        for (let intento = 1; intento <= 3; intento++) {
+            try {
+                resultado = await model.generateContent(parts);
+                break;
+            } catch (err) {
+                if (err.status === 503 && intento < 3) {
+                    await new Promise(r => setTimeout(r, 3000 * intento));
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        const texto = resultado.response.text();
 
         return {
             statusCode: 200,
