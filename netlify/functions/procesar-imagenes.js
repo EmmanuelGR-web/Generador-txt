@@ -4,7 +4,7 @@ exports.handler = async (event) => {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         
-        // Esta línea es la clave: le pedimos la lista de modelos
+        
         const modelList = await genAI.listModels();
         
         return {
