@@ -1,7 +1,7 @@
-// Add this line at the beginning:
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // TODO TU CÓDIGO VA ACÁ ADENTRO
+   
     document.getElementById('btnProcesar').addEventListener('click', async () => {
         const input = document.getElementById('inputImagenes');
         const divEstado = document.getElementById('estado');
@@ -60,5 +60,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-// Agregá esta llave de cierre al final:
+
 });
