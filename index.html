@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Afiliaciones</title>
+    <title>Generador txt</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -233,8 +233,8 @@
 <body>
 
 <div class="header">
-    <h1>📋 Generador de Afiliaciones</h1>
-    <p>Subí las fotos del DNI y las boletas — la IA completa los datos automáticamente.</p>
+    <h1>Generador txt para afilicacion</h1>
+    <p>Subí las fotos del DNI y las boletas para extraer los datos automáticamente.</p>
 </div>
 
 <!-- ══ TITULAR ══ -->
@@ -257,7 +257,7 @@
         </div>
     </div>
     <button class="btn-extraer" id="btn-extraer-titular" onclick="extraerDNI('titular')" disabled>
-        ⚡ Extraer datos del DNI
+        Extraer datos del DNI
     </button>
     <div class="mini-estado" id="estado-titular"></div>
 
@@ -282,31 +282,28 @@
             <label>Plan elegido</label>
             <select id="titular-plan">
                 <option value="PMO">PMO</option>
-                <option value="200">200</option>
-                <option value="300">300</option>
-                <option value="400">400</option>
-                <option value="500">500</option>
-                <option value="Simple">Simple</option>
+                <option value="200">200</option>Sup</option>
+                <option value="Diferencial">Diferencial</option>
             </select>
         </div>
         <div class="field">
-            <label>Teléfono de contacto ✏️</label>
+            <label>Teléfono de contacto </label>
             <input type="text" id="titular-telefono" placeholder="381XXXXXXX">
         </div>
         <div class="field">
-            <label>Email ✏️</label>
+            <label>Email </label>
             <input type="email" id="titular-email" placeholder="correo@ejemplo.com">
         </div>
         <div class="field">
-            <label>Peso (kg) ✏️</label>
+            <label>Peso (kg) </label>
             <input type="text" id="titular-peso" placeholder="70">
         </div>
         <div class="field">
-            <label>Altura (cm) ✏️</label>
+            <label>Altura (cm) </label>
             <input type="text" id="titular-altura" placeholder="170">
         </div>
         <div class="field">
-            <label>Clave Fiscal ✏️</label>
+            <label>Clave Fiscal </label>
             <input type="text" id="titular-clave" placeholder="Clave AFIP">
         </div>
     </div>
@@ -340,7 +337,6 @@
             <label>CUIT Empleador</label>
             <input type="text" id="emp-cuit" placeholder="Se completa desde la boleta">
         </div>
-
     </div>
 
     <hr>
@@ -363,7 +359,7 @@
     </div>
 
     <button class="btn-extraer" id="btn-calcular" onclick="calcularAporte()" disabled style="margin-top:12px;margin-bottom:0">
-        ⚡ Calcular aporte con Gemini
+        Calcular aportes
     </button>
     <div class="mini-estado" id="estado-boletas"></div>
 
@@ -392,6 +388,7 @@
     </div>
 </div>
 
+<!-- ---------------------- -->
 <!-- ══ GENERAR ══ -->
 <button class="btn-generar" onclick="generarTXT()">Generar Archivo .TXT</button>
 <div class="estado-global" id="estadoGlobal"></div>
@@ -439,7 +436,7 @@ async function extraerDNI(quien) {
     const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
 Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
 {"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
-Si no encontrás algún campo poné null. El CUIL está en el dorso del DNI.`;
+Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso.`;
 
     try {
         const parts = [
@@ -566,12 +563,12 @@ function renderCamposFamiliarHTML(f) {
                     oninput="actualizarCampo('${f.id}','fecha_nacimiento',this.value)" ${c.fecha_nacimiento?'class="auto-filled"':''}>
             </div>
             <div class="field">
-                <label>Peso (kg) ✏️</label>
+                <label>Peso (kg) </label>
                 <input type="text" id="${f.id}-peso" value="${c.peso||''}" placeholder="70"
                     oninput="actualizarCampo('${f.id}','peso',this.value)">
             </div>
             <div class="field">
-                <label>Altura (cm) ✏️</label>
+                <label>Altura (cm) </label>
                 <input type="text" id="${f.id}-altura" value="${c.altura||''}" placeholder="170"
                     oninput="actualizarCampo('${f.id}','altura',this.value)">
             </div>
@@ -702,6 +699,8 @@ function generarTXT() {
     const aporteCalc = document.getElementById('emp-aporte-calc').value.trim();
     const empNombre = document.getElementById('emp-nombre').value.trim();
     const empCuit = document.getElementById('emp-cuit').value.trim();
+    const empCategoria = document.getElementById('emp-categoria').value.trim();
+    const empIngreso = document.getElementById('emp-ingreso').value.trim();
 
     function edad(fnacStr) {
         if (!fnacStr) return '';
@@ -727,6 +726,7 @@ function generarTXT() {
     if (peso) txt += `*Peso: ${peso}kg\n`;
     if (altura) txt += `*Altura: ${altura}cm\n`;
     if (clave) txt += `*Clave Fiscal: ${clave}\n`;
+    if (empCategoria) txt += `*Categoría: ${empCategoria}\n`;
     if (cuil) txt += `*CUIL: ${cuil}\n`;
 
     txt += '\nDATOS DEL EMPLEADOR\n';
@@ -734,6 +734,7 @@ function generarTXT() {
     if (empNombre) txt += `*Empleador: ${empNombre}\n`;
     if (bruto) txt += `*Sueldo Bruto sujeto aportes: ${bruto}\n`;
     if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}\n`;
+    
 
     familiares.forEach(f => {
         const c = f.campos;
@@ -743,7 +744,6 @@ function generarTXT() {
         if (c.fecha_nacimiento) txt += `*Edad: ${edad(c.fecha_nacimiento)}\n`;
         if (c.dni) txt += `*DNI:${c.dni}\n`;
         if (c.fecha_nacimiento) txt += `*Fecha de Nacimiento: ${c.fecha_nacimiento}\n`;
-        if (c.cuil) txt += `*CUIL: ${c.cuil}\n`;
         if (c.peso) txt += `*Peso: ${c.peso}kg\n`;
         if (c.altura) txt += `*Altura: ${c.altura}cm\n`;
     });
