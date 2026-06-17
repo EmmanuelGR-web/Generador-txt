@@ -282,8 +282,11 @@
             <label>Plan elegido</label>
             <select id="titular-plan">
                 <option value="PMO">PMO</option>
-                <option value="PMO + Sup">PMO + Sup</option>
-                <option value="Diferencial">Diferencial</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+                <option value="Simple">Simple</option>
             </select>
         </div>
         <div class="field">
@@ -337,14 +340,7 @@
             <label>CUIT Empleador</label>
             <input type="text" id="emp-cuit" placeholder="Se completa desde la boleta">
         </div>
-        <div class="field">
-            <label>Categoría / Cargo</label>
-            <input type="text" id="emp-categoria" placeholder="Se completa desde la boleta">
-        </div>
-        <div class="field">
-            <label>Fecha de Ingreso</label>
-            <input type="text" id="emp-ingreso" placeholder="Se completa desde la boleta">
-        </div>
+
     </div>
 
     <hr>
@@ -706,8 +702,6 @@ function generarTXT() {
     const aporteCalc = document.getElementById('emp-aporte-calc').value.trim();
     const empNombre = document.getElementById('emp-nombre').value.trim();
     const empCuit = document.getElementById('emp-cuit').value.trim();
-    const empCategoria = document.getElementById('emp-categoria').value.trim();
-    const empIngreso = document.getElementById('emp-ingreso').value.trim();
 
     function edad(fnacStr) {
         if (!fnacStr) return '';
@@ -739,8 +733,6 @@ function generarTXT() {
     if (peso) txt += `*Peso: ${peso}kg\n`;
     if (altura) txt += `*Altura: ${altura}cm\n`;
     if (clave) txt += `*Clave Fiscal: ${clave}\n`;
-    if (empCategoria) txt += `*Categoría: ${empCategoria}\n`;
-    if (empIngreso) txt += `*Fecha de ingreso: ${empIngreso}\n`;
     if (cuil) txt += `*CUIL: ${cuil}\n`;
 
     familiares.forEach(f => {
