@@ -439,7 +439,7 @@ async function extraerDNI(quien) {
     const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
 Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
 {"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
-Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso.`;
+Si no encontrás algún campo poné null. El CUIL está en el dorso del DNI.`;
 
     try {
         const parts = [
@@ -724,16 +724,16 @@ function generarTXT() {
     if (tel) txt += `*Teléfono de contacto : ${tel}\n`;
     if (aporteEst) txt += `*Aporte estimado: ${aporteEst}\n`;
     if (email) txt += `*Email : ${email}\n`;
+    if (peso) txt += `*Peso: ${peso}kg\n`;
+    if (altura) txt += `*Altura: ${altura}cm\n`;
+    if (clave) txt += `*Clave Fiscal: ${clave}\n`;
+    if (cuil) txt += `*CUIL: ${cuil}\n`;
 
     txt += '\nDATOS DEL EMPLEADOR\n';
     if (empCuit) txt += `*Cuit Empleador: ${empCuit}\n`;
     if (empNombre) txt += `*Empleador: ${empNombre}\n`;
     if (bruto) txt += `*Sueldo Bruto sujeto aportes: ${bruto}\n`;
     if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}\n`;
-    if (peso) txt += `*Peso: ${peso}kg\n`;
-    if (altura) txt += `*Altura: ${altura}cm\n`;
-    if (clave) txt += `*Clave Fiscal: ${clave}\n`;
-    if (cuil) txt += `*CUIL: ${cuil}\n`;
 
     familiares.forEach(f => {
         const c = f.campos;
@@ -743,6 +743,7 @@ function generarTXT() {
         if (c.fecha_nacimiento) txt += `*Edad: ${edad(c.fecha_nacimiento)}\n`;
         if (c.dni) txt += `*DNI:${c.dni}\n`;
         if (c.fecha_nacimiento) txt += `*Fecha de Nacimiento: ${c.fecha_nacimiento}\n`;
+        if (c.cuil) txt += `*CUIL: ${c.cuil}\n`;
         if (c.peso) txt += `*Peso: ${c.peso}kg\n`;
         if (c.altura) txt += `*Altura: ${c.altura}cm\n`;
     });
