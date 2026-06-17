@@ -4,18 +4,778 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Afiliaciones</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --verde: #1a7a4a;
+            --verde-claro: #e8f5ee;
+            --verde-hover: #155f39;
+            --gris-fondo: #f5f6f8;
+            --gris-borde: #dde1e7;
+            --gris-texto: #6b7280;
+            --negro: #111827;
+            --blanco: #ffffff;
+            --rojo: #dc2626;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gris-fondo);
+            color: var(--negro);
+            min-height: 100vh;
+            padding: 24px 16px 80px;
+        }
+        .header { text-align: center; margin-bottom: 28px; }
+        .header h1 { font-size: 1.5rem; font-weight: 700; color: var(--verde); }
+        .header p { font-size: 0.88rem; color: var(--gris-texto); margin-top: 4px; }
+
+        .card {
+            background: var(--blanco);
+            border: 1px solid var(--gris-borde);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--verde);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title::after { content:''; flex:1; height:1px; background:var(--verde-claro); }
+
+        /* DNI upload pair */
+        .dni-upload-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .dni-slot {
+            border: 2px dashed var(--gris-borde);
+            border-radius: 10px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .dni-slot:hover { border-color: var(--verde); background: var(--verde-claro); }
+        .dni-slot input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .dni-slot .slot-icon { font-size: 1.6rem; margin-bottom: 4px; }
+        .dni-slot .slot-label { font-size: 0.78rem; font-weight: 700; color: var(--negro); }
+        .dni-slot .slot-sub { font-size: 0.72rem; color: var(--gris-texto); margin-top: 2px; }
+        .dni-slot.loaded { border-color: var(--verde); border-style: solid; background: var(--verde-claro); }
+        .dni-slot.loaded .slot-icon::after { content: ' ✓'; font-size: 1rem; }
+
+        .btn-extraer {
+            width: 100%;
+            padding: 11px;
+            background: var(--verde-claro);
+            border: 1.5px solid var(--verde);
+            color: var(--verde);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-extraer:hover { background: #d0eedd; }
+        .btn-extraer:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Form fields */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        @media (max-width: 540px) { .form-grid, .form-grid.cols-3 { grid-template-columns: 1fr; } }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field.full { grid-column: 1 / -1; }
+        label { font-size: 0.75rem; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.3px; }
+        input, select {
+            border: 1.5px solid var(--gris-borde);
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--negro);
+            background: var(--blanco);
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--verde); }
+        input.auto-filled { background: #f0faf5; border-color: #a7d9bc; }
+        input[readonly] { background: var(--gris-fondo); color: var(--gris-texto); }
+
+        /* Capitas toggle */
+        .toggle-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 16px;
+            background: var(--verde-claro);
+            border: 1.5px solid #b6dfc8;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .sw { width: 42px; height: 22px; background: #cbd5e1; border-radius: 11px; position: relative; flex-shrink:0; transition: background 0.2s; }
+        .sw::after { content:''; position:absolute; left:3px; top:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition: transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+        .sw.on { background: var(--verde); }
+        .sw.on::after { transform: translateX(20px); }
+        .toggle-label { font-size: 0.9rem; font-weight: 600; }
+        .toggle-sub { font-size: 0.78rem; color: var(--gris-texto); }
+
+        /* Familiar cards */
+        .familiar-card {
+            border: 1.5px solid var(--gris-borde);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 12px;
+            background: #fafbfc;
+        }
+        .familiar-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+        }
+        .parentesco-select {
+            border: none; background: var(--verde-claro); color: var(--verde);
+            font-weight: 700; font-size: 0.75rem; text-transform: uppercase;
+            padding: 3px 10px; border-radius: 20px; cursor: pointer; letter-spacing: 0.4px;
+        }
+        .btn-remove {
+            background: none; border: none; cursor: pointer; color: var(--rojo);
+            font-size: 0.8rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+        }
+        .btn-remove:hover { background: #fee2e2; }
+
+        .btn-add {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 10px;
+            border: 1.5px dashed var(--verde); background: none; color: var(--verde);
+            border-radius: 8px; font-size: 0.87rem; font-weight: 600;
+            cursor: pointer; margin-top: 12px; transition: background 0.15s;
+        }
+        .btn-add:hover { background: var(--verde-claro); }
+
+        /* Boletas */
+        .boleta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 540px) { .boleta-grid { grid-template-columns: 1fr; } }
+        .boleta-slot {
+            border: 2px dashed var(--gris-borde); border-radius: 10px;
+            padding: 18px 12px; text-align: center; cursor: pointer;
+            position: relative; transition: border-color 0.2s, background 0.2s;
+        }
+        .boleta-slot:hover { border-color: var(--verde); background: var(--verde-claro); }
+        .boleta-slot input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .boleta-slot.loaded { border-color: var(--verde); border-style: solid; background: var(--verde-claro); }
+
+        /* Cálculo */
+        .calculo-box {
+            background: var(--verde-claro); border: 1.5px solid #b6dfc8;
+            border-radius: 10px; padding: 14px 18px; margin-top: 14px; display: none;
+        }
+        .calculo-box.visible { display: block; }
+        .calculo-row {
+            display: flex; justify-content: space-between;
+            padding: 5px 0; border-bottom: 1px solid #c8e6d4;
+            font-size: 0.85rem;
+        }
+        .calculo-row:last-child { border-bottom: none; font-weight: 700; font-size: 0.92rem; }
+        .calculo-row span:last-child { color: var(--verde); font-weight: 600; }
+
+        /* Estado */
+        .mini-estado {
+            font-size: 0.8rem; color: var(--gris-texto); margin-top: 6px;
+            min-height: 18px; font-weight: 500;
+        }
+        .mini-estado.ok { color: var(--verde); }
+        .mini-estado.err { color: var(--rojo); }
+
+        /* Botón principal */
+        .btn-generar {
+            display: block; width: 100%; max-width: 720px; margin: 0 auto;
+            padding: 15px; background: var(--verde); color: #fff;
+            border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-generar:hover { background: var(--verde-hover); }
+        .btn-generar:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        .estado-global {
+            text-align: center; font-size: 0.88rem; font-weight: 600;
+            max-width: 720px; margin: 10px auto 0; min-height: 24px;
+        }
+        .estado-global.ok { color: var(--verde); }
+        .estado-global.err { color: var(--rojo); }
+
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid #e5e7eb; border-top-color: var(--verde);
+            border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        hr { border: none; border-top: 1px solid var(--gris-borde); margin: 16px 0; }
+        .badge { display: inline-block; padding: 2px 9px; background: var(--verde-claro); color: var(--verde); border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-left: 6px; }
+    </style>
 </head>
 <body>
-    <div class="contenedor-tarjeta">
-        <h1>Carga de Datos - Obra Social</h1>
-        <p>Subí las fotos del DNI, recibo de sueldo y notas del afiliado.</p>
-        
-        <input type="file" id="inputImagenes" multiple accept="image/*">
-        <button id="btnProcesar">Generar Archivo .TXT</button>
-        
-        <div id="estado" class="estado"></div>
+
+<div class="header">
+    <h1>📋 Generador de Afiliaciones</h1>
+    <p>Subí las fotos del DNI y las boletas — la IA completa los datos automáticamente.</p>
+</div>
+
+<!-- ══ TITULAR ══ -->
+<div class="card">
+    <div class="card-title">Datos del Titular</div>
+
+    <!-- DNI upload -->
+    <div class="dni-upload-pair">
+        <div class="dni-slot" id="slot-titular-frente">
+            <input type="file" accept="image/*" onchange="handleDNI('titular','frente',event)">
+            <div class="slot-icon">🪪</div>
+            <div class="slot-label">Frente del DNI</div>
+            <div class="slot-sub">Nombre, DNI, nacimiento</div>
+        </div>
+        <div class="dni-slot" id="slot-titular-dorso">
+            <input type="file" accept="image/*" onchange="handleDNI('titular','dorso',event)">
+            <div class="slot-icon">🪪</div>
+            <div class="slot-label">Dorso del DNI</div>
+            <div class="slot-sub">CUIL, domicilio</div>
+        </div>
     </div>
-    <script src="app.js"></script>
+    <button class="btn-extraer" id="btn-extraer-titular" onclick="extraerDNI('titular')" disabled>
+        ⚡ Extraer datos del DNI
+    </button>
+    <div class="mini-estado" id="estado-titular"></div>
+
+    <div class="form-grid" style="margin-top:14px">
+        <div class="field full">
+            <label>Apellido y Nombre</label>
+            <input type="text" id="titular-nombre" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field">
+            <label>DNI</label>
+            <input type="text" id="titular-dni" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field">
+            <label>Fecha de Nacimiento</label>
+            <input type="text" id="titular-fnac" placeholder="DD/MM/AAAA">
+        </div>
+        <div class="field">
+            <label>CUIL</label>
+            <input type="text" id="titular-cuil" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field">
+            <label>Plan elegido</label>
+            <select id="titular-plan">
+                <option value="PMO">PMO</option>
+                <option value="PMO + Sup">PMO + Sup</option>
+                <option value="Diferencial">Diferencial</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Teléfono de contacto ✏️</label>
+            <input type="text" id="titular-telefono" placeholder="381XXXXXXX">
+        </div>
+        <div class="field">
+            <label>Email ✏️</label>
+            <input type="email" id="titular-email" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="field">
+            <label>Peso (kg) ✏️</label>
+            <input type="text" id="titular-peso" placeholder="70">
+        </div>
+        <div class="field">
+            <label>Altura (cm) ✏️</label>
+            <input type="text" id="titular-altura" placeholder="170">
+        </div>
+        <div class="field">
+            <label>Clave Fiscal ✏️</label>
+            <input type="text" id="titular-clave" placeholder="Clave AFIP">
+        </div>
+    </div>
+</div>
+
+<!-- ══ GRUPO FAMILIAR ══ -->
+<div class="card">
+    <div class="card-title">Grupo Familiar</div>
+    <div class="toggle-row" onclick="toggleCapitas()">
+        <div class="sw" id="capitasSw"></div>
+        <div>
+            <div class="toggle-label">¿Incluye grupo familiar? <span class="badge" id="capitasBadge" style="display:none">0</span></div>
+            <div class="toggle-sub">Activá para agregar cónyuge e hijos/as</div>
+        </div>
+    </div>
+    <div id="familiaresSection" style="display:none">
+        <div id="familiaresContainer"></div>
+        <button class="btn-add" onclick="agregarFamiliar()">+ Agregar integrante</button>
+    </div>
+</div>
+
+<!-- ══ EMPLEADOR Y BOLETAS ══ -->
+<div class="card">
+    <div class="card-title">Datos del Empleador</div>
+    <div class="form-grid">
+        <div class="field full">
+            <label>Empleador / Empresa</label>
+            <input type="text" id="emp-nombre" placeholder="Se completa desde la boleta">
+        </div>
+        <div class="field">
+            <label>CUIT Empleador</label>
+            <input type="text" id="emp-cuit" placeholder="Se completa desde la boleta">
+        </div>
+        <div class="field">
+            <label>Categoría / Cargo</label>
+            <input type="text" id="emp-categoria" placeholder="Se completa desde la boleta">
+        </div>
+        <div class="field">
+            <label>Fecha de Ingreso</label>
+            <input type="text" id="emp-ingreso" placeholder="Se completa desde la boleta">
+        </div>
+    </div>
+
+    <hr>
+    <div class="card-title" style="margin-bottom:10px">Boletas de Sueldo</div>
+    <p style="font-size:0.82rem;color:var(--gris-texto);margin-bottom:12px">1 boleta si cobra mensual · 2 boletas si cobra quincenalmente</p>
+
+    <div class="boleta-grid">
+        <div class="boleta-slot" id="slot-b1">
+            <input type="file" accept="image/*" onchange="handleBoleta(event,1)">
+            <div style="font-size:1.6rem;margin-bottom:4px">🧾</div>
+            <div style="font-size:0.85rem;font-weight:700" id="label-b1">Boleta 1</div>
+            <div style="font-size:0.75rem;color:var(--gris-texto)">Mensual o 1° quincena</div>
+        </div>
+        <div class="boleta-slot" id="slot-b2">
+            <input type="file" accept="image/*" onchange="handleBoleta(event,2)">
+            <div style="font-size:1.6rem;margin-bottom:4px">🧾</div>
+            <div style="font-size:0.85rem;font-weight:700" id="label-b2">Boleta 2</div>
+            <div style="font-size:0.75rem;color:var(--gris-texto)">Solo si cobra quincenalmente</div>
+        </div>
+    </div>
+
+    <button class="btn-extraer" id="btn-calcular" onclick="calcularAporte()" disabled style="margin-top:12px;margin-bottom:0">
+        ⚡ Calcular aporte con Gemini
+    </button>
+    <div class="mini-estado" id="estado-boletas"></div>
+
+    <div class="calculo-box" id="calculoBox">
+        <div class="calculo-row"><span>Aporte OS boleta 1</span><span id="c-b1">—</span></div>
+        <div class="calculo-row" id="c-b2-row"><span>Aporte OS boleta 2</span><span id="c-b2">—</span></div>
+        <div class="calculo-row"><span>Aporte estimado (suma)</span><span id="c-est">—</span></div>
+        <div class="calculo-row"><span>Sueldo bruto (× 3)</span><span id="c-bruto">—</span></div>
+        <div class="calculo-row"><span>Descuento 7,65%</span><span id="c-desc">—</span></div>
+        <div class="calculo-row"><span>Aporte calculado a cobrar</span><span id="c-final">—</span></div>
+    </div>
+
+    <div class="form-grid" style="margin-top:14px">
+        <div class="field">
+            <label>Aporte estimado</label>
+            <input type="text" id="emp-aporte-est" readonly>
+        </div>
+        <div class="field">
+            <label>Sueldo bruto sujeto aportes</label>
+            <input type="text" id="emp-bruto" readonly>
+        </div>
+        <div class="field full">
+            <label>Aporte calculado a cobrar</label>
+            <input type="text" id="emp-aporte-calc" readonly>
+        </div>
+    </div>
+</div>
+
+<!-- ══ GENERAR ══ -->
+<button class="btn-generar" onclick="generarTXT()">Generar Archivo .TXT</button>
+<div class="estado-global" id="estadoGlobal"></div>
+
+<script>
+// ── Estado global ──
+const dniFiles = { titular: { frente: null, dorso: null } };
+const boletaFiles = { b1: null, b2: null };
+let capitasActivo = false;
+let familiares = []; // [{id, parentesco, frente, dorso, campos:{}}]
+let nextId = 0;
+
+// ── DNI handling ──
+function handleDNI(quien, lado, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        if (!dniFiles[quien]) dniFiles[quien] = {};
+        dniFiles[quien][lado] = { mimeType: file.type, data: reader.result.split(',')[1], name: file.name };
+        const slot = document.getElementById(`slot-${quien}-${lado}`);
+        if (slot) slot.classList.add('loaded');
+        actualizarBtnExtraer(quien);
+    };
+    reader.readAsDataURL(file);
+}
+
+function actualizarBtnExtraer(quien) {
+    const d = dniFiles[quien];
+    const btn = document.getElementById(`btn-extraer-${quien}`);
+    if (btn) btn.disabled = !(d && d.frente); // al menos frente
+}
+
+async function extraerDNI(quien) {
+    const d = dniFiles[quien];
+    if (!d || !d.frente) return;
+
+    setMiniEstado(quien, '<span class="spinner"></span> Leyendo DNI...', '');
+    const btn = document.getElementById(`btn-extraer-${quien}`);
+    if (btn) btn.disabled = true;
+
+    const imagenes = [d.frente];
+    if (d.dorso) imagenes.push(d.dorso);
+
+    const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
+Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
+{"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
+Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso.`;
+
+    try {
+        const parts = [
+            { text: prompt },
+            ...imagenes.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } }))
+        ];
+        const res = await callGemini(parts);
+        let txt = res.replace(/```json|```/g,'').trim();
+        const datos = JSON.parse(txt);
+
+        if (quien === 'titular') {
+            setField('titular-nombre', datos.apellido_nombre);
+            setField('titular-dni', datos.dni);
+            setField('titular-fnac', datos.fecha_nacimiento);
+            setField('titular-cuil', datos.cuil);
+        } else {
+            // familiar
+            const fam = familiares.find(f => f.id === quien);
+            if (fam) {
+                fam.campos = { ...fam.campos, ...datos };
+                renderCamposFamiliar(quien);
+            }
+        }
+        setMiniEstado(quien, '✓ Datos extraídos correctamente', 'ok');
+    } catch(e) {
+        setMiniEstado(quien, 'Error: ' + e.message, 'err');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+function setField(id, val) {
+    const el = document.getElementById(id);
+    if (el && val) { el.value = val; el.classList.add('auto-filled'); }
+}
+
+// ── Capitas ──
+function toggleCapitas() {
+    capitasActivo = !capitasActivo;
+    document.getElementById('capitasSw').classList.toggle('on', capitasActivo);
+    document.getElementById('familiaresSection').style.display = capitasActivo ? 'block' : 'none';
+    actualizarBadge();
+}
+
+function actualizarBadge() {
+    const badge = document.getElementById('capitasBadge');
+    if (familiares.length > 0) {
+        badge.style.display = 'inline-block';
+        badge.textContent = familiares.length + (familiares.length===1?' persona':' personas');
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function agregarFamiliar() {
+    const id = 'fam-' + (nextId++);
+    familiares.push({ id, parentesco: 'Cónyuge', frente: null, dorso: null, campos: {} });
+    dniFiles[id] = { frente: null, dorso: null };
+    renderFamiliares();
+}
+
+function removerFamiliar(id) {
+    familiares = familiares.filter(f => f.id !== id);
+    delete dniFiles[id];
+    renderFamiliares();
+}
+
+function renderFamiliares() {
+    const container = document.getElementById('familiaresContainer');
+    container.innerHTML = '';
+    familiares.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'familiar-card';
+        div.id = 'card-' + f.id;
+        div.innerHTML = `
+            <div class="familiar-header">
+                <select class="parentesco-select" onchange="cambiarParentesco('${f.id}',this.value)">
+                    ${['Cónyuge','Concubino/a','Hijo','Hija','Hijo/a (discapacidad)'].map(p=>`<option ${f.parentesco===p?'selected':''}>${p}</option>`).join('')}
+                </select>
+                <button class="btn-remove" onclick="removerFamiliar('${f.id}')">✕ Quitar</button>
+            </div>
+            <div class="dni-upload-pair">
+                <div class="dni-slot ${f.frente?'loaded':''}" id="slot-${f.id}-frente">
+                    <input type="file" accept="image/*" onchange="handleDNI('${f.id}','frente',event)">
+                    <div class="slot-icon">🪪</div>
+                    <div class="slot-label">Frente DNI</div>
+                </div>
+                <div class="dni-slot ${f.dorso?'loaded':''}" id="slot-${f.id}-dorso">
+                    <input type="file" accept="image/*" onchange="handleDNI('${f.id}','dorso',event)">
+                    <div class="slot-icon">🪪</div>
+                    <div class="slot-label">Dorso DNI</div>
+                </div>
+            </div>
+            <button class="btn-extraer" id="btn-extraer-${f.id}" onclick="extraerDNI('${f.id}')" ${f.frente?'':'disabled'}>
+                ⚡ Extraer datos del DNI
+            </button>
+            <div class="mini-estado" id="estado-${f.id}"></div>
+            <div id="campos-${f.id}">
+                ${renderCamposFamiliarHTML(f)}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    actualizarBadge();
+}
+
+function renderCamposFamiliarHTML(f) {
+    const c = f.campos;
+    return `
+        <div class="form-grid" style="margin-top:12px">
+            <div class="field full">
+                <label>Apellido y Nombre</label>
+                <input type="text" id="${f.id}-nombre" value="${c.apellido_nombre||''}" placeholder="Se completa automáticamente"
+                    oninput="actualizarCampo('${f.id}','apellido_nombre',this.value)" ${c.apellido_nombre?'class="auto-filled"':''}>
+            </div>
+            <div class="field">
+                <label>DNI</label>
+                <input type="text" id="${f.id}-dni" value="${c.dni||''}" placeholder="Se completa automáticamente"
+                    oninput="actualizarCampo('${f.id}','dni',this.value)" ${c.dni?'class="auto-filled"':''}>
+            </div>
+            <div class="field">
+                <label>Fecha de Nacimiento</label>
+                <input type="text" id="${f.id}-fnac" value="${c.fecha_nacimiento||''}" placeholder="DD/MM/AAAA"
+                    oninput="actualizarCampo('${f.id}','fecha_nacimiento',this.value)" ${c.fecha_nacimiento?'class="auto-filled"':''}>
+            </div>
+            <div class="field">
+                <label>Peso (kg) ✏️</label>
+                <input type="text" id="${f.id}-peso" value="${c.peso||''}" placeholder="70"
+                    oninput="actualizarCampo('${f.id}','peso',this.value)">
+            </div>
+            <div class="field">
+                <label>Altura (cm) ✏️</label>
+                <input type="text" id="${f.id}-altura" value="${c.altura||''}" placeholder="170"
+                    oninput="actualizarCampo('${f.id}','altura',this.value)">
+            </div>
+        </div>
+    `;
+}
+
+function renderCamposFamiliar(id) {
+    const fam = familiares.find(f => f.id === id);
+    if (!fam) return;
+    const container = document.getElementById('campos-' + id);
+    if (container) container.innerHTML = renderCamposFamiliarHTML(fam);
+}
+
+function cambiarParentesco(id, val) {
+    const fam = familiares.find(f => f.id === id);
+    if (fam) fam.parentesco = val;
+}
+
+function actualizarCampo(id, campo, val) {
+    const fam = familiares.find(f => f.id === id);
+    if (fam) fam.campos[campo] = val;
+}
+
+// ── Boletas ──
+function handleBoleta(event, num) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        boletaFiles['b'+num] = { mimeType: file.type, data: reader.result.split(',')[1], name: file.name };
+        document.getElementById('slot-b'+num).classList.add('loaded');
+        document.getElementById('label-b'+num).textContent = '✓ ' + file.name.substring(0,22);
+        document.getElementById('btn-calcular').disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function calcularAporte() {
+    if (!boletaFiles.b1) { setMiniEstado('boletas','Subí al menos la boleta 1.','err'); return; }
+    setMiniEstado('boletas','<span class="spinner"></span> Leyendo boletas con Gemini...','');
+    document.getElementById('btn-calcular').disabled = true;
+
+    const imagenes = [boletaFiles.b1];
+    if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
+
+    const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
+Extraé el valor del campo "O.S.P.R.y E.R.A. 3%" (o similar: descuento obra social 3%) de ${imagenes.length===1?'la boleta':'cada boleta'}.
+También extraé: nombre del empleador, CUIT, categoría/cargo, fecha de ingreso, CUIL del trabajador.
+Respondé ÚNICAMENTE con este JSON (sin markdown):
+{"boleta1":27711.76,"boleta2":24970.94,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","categoria":"Tractorista (UATRE)","fecha_ingreso":"01/07/2019","cuil_titular":"20-27664943-5"}
+Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, con punto decimal.`;
+
+    try {
+        const parts = [{ text: prompt }, ...imagenes.map(i=>({inlineData:{mimeType:i.mimeType,data:i.data}}))];
+        const res = await callGemini(parts);
+        const datos = JSON.parse(res.replace(/```json|```/g,'').trim());
+
+        const b1 = parseFloat(datos.boleta1)||0;
+        const b2 = parseFloat(datos.boleta2)||0;
+        const est = b1+b2;
+        const bruto = est*3;
+        const desc = bruto*0.0765;
+        const final = bruto-desc;
+
+        document.getElementById('calculoBox').classList.add('visible');
+        document.getElementById('c-b1').textContent = fmt(b1);
+        const b2row = document.getElementById('c-b2-row');
+        b2row.style.display = b2>0 ? 'flex' : 'none';
+        document.getElementById('c-b2').textContent = fmt(b2);
+        document.getElementById('c-est').textContent = fmt(est);
+        document.getElementById('c-bruto').textContent = fmt(bruto);
+        document.getElementById('c-desc').textContent = '−'+fmt(desc);
+        document.getElementById('c-final').textContent = fmt(final);
+
+        document.getElementById('emp-aporte-est').value = fmt(est);
+        document.getElementById('emp-bruto').value = fmt(bruto);
+        document.getElementById('emp-aporte-calc').value = fmt(final);
+
+        if (datos.empleador) setField('emp-nombre', datos.empleador);
+        if (datos.cuit_empleador) setField('emp-cuit', datos.cuit_empleador);
+        if (datos.categoria) setField('emp-categoria', datos.categoria);
+        if (datos.fecha_ingreso) setField('emp-ingreso', datos.fecha_ingreso);
+        if (datos.cuil_titular && !document.getElementById('titular-cuil').value)
+            setField('titular-cuil', datos.cuil_titular);
+
+        setMiniEstado('boletas','✓ Cálculo completado','ok');
+    } catch(e) {
+        setMiniEstado('boletas','Error: '+e.message,'err');
+    } finally {
+        document.getElementById('btn-calcular').disabled = false;
+    }
+}
+
+// ── Gemini call ──
+async function callGemini(parts) {
+    const response = await fetch('/.netlify/functions/procesar-imagenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modo: 'calcular', partes: parts })
+    });
+    if (!response.ok) throw new Error('Error servidor: ' + response.status);
+    const result = await response.json();
+    if (result.error) throw new Error(result.error);
+    return result.texto;
+}
+
+// ── Generar TXT ──
+function generarTXT() {
+    const nombre = document.getElementById('titular-nombre').value.trim();
+    const dni = document.getElementById('titular-dni').value.trim();
+    if (!nombre || !dni) {
+        setGlobal('Completá al menos nombre y DNI del titular.','err');
+        return;
+    }
+
+    const plan = document.getElementById('titular-plan').value;
+    const capitas = capitasActivo ? familiares.length + 1 : 1;
+    const fnac = document.getElementById('titular-fnac').value.trim();
+    const cuil = document.getElementById('titular-cuil').value.trim();
+    const tel = document.getElementById('titular-telefono').value.trim();
+    const email = document.getElementById('titular-email').value.trim();
+    const peso = document.getElementById('titular-peso').value.trim();
+    const altura = document.getElementById('titular-altura').value.trim();
+    const clave = document.getElementById('titular-clave').value.trim();
+    const aporteEst = document.getElementById('emp-aporte-est').value.trim();
+    const bruto = document.getElementById('emp-bruto').value.trim();
+    const aporteCalc = document.getElementById('emp-aporte-calc').value.trim();
+    const empNombre = document.getElementById('emp-nombre').value.trim();
+    const empCuit = document.getElementById('emp-cuit').value.trim();
+    const empCategoria = document.getElementById('emp-categoria').value.trim();
+    const empIngreso = document.getElementById('emp-ingreso').value.trim();
+
+    function edad(fnacStr) {
+        if (!fnacStr) return '';
+        const [d,m,a] = fnacStr.split('/');
+        if (!a) return '';
+        const hoy = new Date();
+        const nac = new Date(+a,+m-1,+d);
+        let e = hoy.getFullYear()-nac.getFullYear();
+        if (hoy < new Date(hoy.getFullYear(),nac.getMonth(),nac.getDate())) e--;
+        return e+' años';
+    }
+
+    let txt = 'DATOS DEL TITULAR\n';
+    txt += `*Apellido y Nombre del titular: ${nombre}\n`;
+    txt += `*Plan elegido : ${plan}\n`;
+    txt += `*Capitas: ${capitas}\n`;
+    if (fnac) txt += `*Edad : ${edad(fnac)}\n`;
+    txt += `*DNI : ${dni}\n`;
+    if (fnac) txt += `*Fecha de nacimiento: ${fnac}\n`;
+    if (tel) txt += `*Teléfono de contacto : ${tel}\n`;
+    if (aporteEst) txt += `*Aporte estimado: ${aporteEst}\n`;
+    if (email) txt += `*Email : ${email}\n`;
+
+    txt += '\nDATOS DEL EMPLEADOR\n';
+    if (empCuit) txt += `*Cuit Empleador: ${empCuit}\n`;
+    if (empNombre) txt += `*Empleador: ${empNombre}\n`;
+    if (bruto) txt += `*Sueldo Bruto sujeto aportes: ${bruto}\n`;
+    if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}\n`;
+    if (peso) txt += `*Peso: ${peso}kg\n`;
+    if (altura) txt += `*Altura: ${altura}cm\n`;
+    if (clave) txt += `*Clave Fiscal: ${clave}\n`;
+    if (empCategoria) txt += `*Categoría: ${empCategoria}\n`;
+    if (empIngreso) txt += `*Fecha de ingreso: ${empIngreso}\n`;
+    if (cuil) txt += `*CUIL: ${cuil}\n`;
+
+    familiares.forEach(f => {
+        const c = f.campos;
+        txt += '\nDATOS DEL GRUPO FAMILIAR\n';
+        if (c.apellido_nombre) txt += `*Apellido y Nombre: ${c.apellido_nombre}\n`;
+        txt += `*Parentesco: ${f.parentesco}\n`;
+        if (c.fecha_nacimiento) txt += `*Edad: ${edad(c.fecha_nacimiento)}\n`;
+        if (c.dni) txt += `*DNI:${c.dni}\n`;
+        if (c.fecha_nacimiento) txt += `*Fecha de Nacimiento: ${c.fecha_nacimiento}\n`;
+        if (c.peso) txt += `*Peso: ${c.peso}kg\n`;
+        if (c.altura) txt += `*Altura: ${c.altura}cm\n`;
+    });
+
+    const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Afiliacion_${nombre.replace(/\s+/g,'_')}.txt`;
+    a.click();
+    setGlobal('✓ Archivo generado correctamente.','ok');
+}
+
+// ── Helpers ──
+function fmt(n) { return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function setMiniEstado(quien, msg, tipo) {
+    const el = document.getElementById('estado-'+quien);
+    if (!el) return;
+    el.innerHTML = msg;
+    el.className = 'mini-estado' + (tipo?' '+tipo:'');
+}
+function setGlobal(msg, tipo) {
+    const el = document.getElementById('estadoGlobal');
+    el.innerHTML = msg;
+    el.className = 'estado-global' + (tipo?' '+tipo:'');
+}
+</script>
 </body>
 </html>
