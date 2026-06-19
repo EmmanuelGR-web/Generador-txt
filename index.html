@@ -702,9 +702,7 @@ function generarTXT() {
     const aporteCalc = document.getElementById('emp-aporte-calc').value.trim();
     const empNombre = document.getElementById('emp-nombre').value.trim();
     const empCuit = document.getElementById('emp-cuit').value.trim();
-    const empCategoria = document.getElementById('emp-categoria').value.trim();
-    const empIngreso = document.getElementById('emp-ingreso').value.trim();
-
+    
     function edad(fnacStr) {
         if (!fnacStr) return '';
         const [d,m,a] = fnacStr.split('/');
@@ -729,7 +727,6 @@ function generarTXT() {
     if (peso) txt += `*Peso: ${peso}kg\n`;
     if (altura) txt += `*Altura: ${altura}cm\n`;
     if (clave) txt += `*Clave Fiscal: ${clave}\n`;
-    if (empCategoria) txt += `*Categoría: ${empCategoria}\n`;
     if (cuil) txt += `*CUIL: ${cuil}\n`;
 
     txt += '\nDATOS DEL EMPLEADOR\n';
