@@ -309,6 +309,26 @@
             <label>Clave Fiscal </label>
             <input type="text" id="titular-clave" placeholder="Clave AFIP">
         </div>
+        </div>
+        <div class="field full">
+            <label>Domicilio</label>
+            <input type="text" id="titular-domicilio" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field">
+            <label>Localidad</label>
+            <input type="text" id="titular-localidad" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field">
+            <label>Provincia</label>
+            <input type="text" id="titular-provincia" placeholder="Se completa automáticamente">
+        </div>
+        <div class="field full">
+            <label>Código Postal</label>
+            <div style="display:flex;gap:8px">
+                <input type="text" id="titular-cp" placeholder="Se busca automáticamente" style="flex:1">
+                <button type="button" onclick="buscarCP()" style="padding:9px 14px;background:var(--verde-claro);border:1.5px solid var(--verde);color:var(--verde);border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap">🔍 Buscar CP</button>
+            </div>
+            <div class="mini-estado" id="estado-cp"></div>
     </div>
 </div>
 
@@ -340,6 +360,10 @@
             <label>CUIT Empleador</label>
             <input type="text" id="emp-cuit" placeholder="Se completa desde la boleta">
         </div>
+        </div>
+        <div class="field full">
+            <label>Domicilio del Empleador</label>
+            <input type="text" id="emp-domicilio" placeholder="Se completa desde la boleta">
     </div>
 
     <hr>
@@ -455,6 +479,9 @@ Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso
             setField('titular-dni', datos.dni);
             setField('titular-fnac', datos.fecha_nacimiento);
             setField('titular-cuil', datos.cuil);
+            setField('titular-domicilio', datos.domicilio);
+            setField('titular-localidad', datos.localidad);
+            setField('titular-provincia', datos.provincia);
         } else {
             // familiar
             const fam = familiares.find(f => f.id === quien);
@@ -566,6 +593,11 @@ function renderCamposFamiliarHTML(f) {
                     oninput="actualizarCampo('${f.id}','fecha_nacimiento',this.value)" ${c.fecha_nacimiento?'class="auto-filled"':''}>
             </div>
             <div class="field">
+                <label>CUIL</label>
+                <input type="text" id="${f.id}-cuil" value="${c.cuil||''}" placeholder="Se completa automáticamente"
+                    oninput="actualizarCampo('${f.id}','cuil',this.value)" ${c.cuil?'class="auto-filled"':''}>
+            </div>
+            <div class="field">
                 <label>Peso (kg) </label>
                 <input type="text" id="${f.id}-peso" value="${c.peso||''}" placeholder="70"
                     oninput="actualizarCampo('${f.id}','peso',this.value)">
@@ -620,9 +652,9 @@ async function calcularAporte() {
 
     const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
 Extraé el valor del campo "O.S.P.R.y E.R.A. 3%" (o similar: descuento obra social 3%) de ${imagenes.length===1?'la boleta':'cada boleta'}.
-También extraé: nombre del empleador, CUIT, categoría/cargo, fecha de ingreso, CUIL del trabajador.
+También extraé: nombre del empleador, CUIT, domicilio del empleador, CUIL del trabajador.
 Respondé ÚNICAMENTE con este JSON (sin markdown):
-{"boleta1":27711.76,"boleta2":24970.94,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","categoria":"Tractorista (UATRE)","fecha_ingreso":"01/07/2019","cuil_titular":"20-27664943-5"}
+{"boleta1":27711.76,"boleta2":24970.94,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
 Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, con punto decimal.`;
 
     try {
@@ -653,8 +685,7 @@ Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, 
 
         if (datos.empleador) setField('emp-nombre', datos.empleador);
         if (datos.cuit_empleador) setField('emp-cuit', datos.cuit_empleador);
-        if (datos.categoria) setField('emp-categoria', datos.categoria);
-        if (datos.fecha_ingreso) setField('emp-ingreso', datos.fecha_ingreso);
+        if (datos.domicilio_empleador) setField('emp-domicilio', datos.domicilio_empleador);
         if (datos.cuil_titular && !document.getElementById('titular-cuil').value)
             setField('titular-cuil', datos.cuil_titular);
 
@@ -728,13 +759,23 @@ function generarTXT() {
     if (altura) txt += `*Altura: ${altura}cm\n`;
     if (clave) txt += `*Clave Fiscal: ${clave}\n`;
     if (cuil) txt += `*CUIL: ${cuil}\n`;
+    const domicilio = document.getElementById('titular-domicilio').value.trim();
+    const localidad = document.getElementById('titular-localidad').value.trim();
+    const provincia = document.getElementById('titular-provincia').value.trim();
+    if (domicilio) txt += `*Domicilio: ${domicilio}\n`;
+    if (localidad) txt += `*Localidad: ${localidad}\n`;
+    if (provincia) txt += `*Provincia: ${provincia}\n`;
+    const cp = document.getElementById('titular-cp').value.trim();
+    if (cp) txt += `*Código Postal: ${cp}\n`;
 
     txt += '\nDATOS DEL EMPLEADOR\n';
     if (empCuit) txt += `*Cuit Empleador: ${empCuit}\n`;
     if (empNombre) txt += `*Empleador: ${empNombre}\n`;
     if (bruto) txt += `*Sueldo Bruto sujeto aportes: ${bruto}\n`;
     if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}\n`;
-    
+    const empDomicilio = document.getElementById('emp-domicilio').value.trim();
+    if (empDomicilio) txt += `*Domicilio Empleador: ${empDomicilio}\n`;
+
 
     familiares.forEach(f => {
         const c = f.campos;
@@ -744,6 +785,7 @@ function generarTXT() {
         if (c.fecha_nacimiento) txt += `*Edad: ${edad(c.fecha_nacimiento)}\n`;
         if (c.dni) txt += `*DNI:${c.dni}\n`;
         if (c.fecha_nacimiento) txt += `*Fecha de Nacimiento: ${c.fecha_nacimiento}\n`;
+        if (c.cuil) txt += `*CUIL: ${c.cuil}\n`;
         if (c.peso) txt += `*Peso: ${c.peso}kg\n`;
         if (c.altura) txt += `*Altura: ${c.altura}cm\n`;
     });
@@ -754,6 +796,69 @@ function generarTXT() {
     a.download = `Afiliacion_${nombre.replace(/\s+/g,'_')}.txt`;
     a.click();
     setGlobal('✓ Archivo generado correctamente.','ok');
+}
+
+// ── Buscar Código Postal ──
+async function buscarCP() {
+    const localidad = document.getElementById('titular-localidad').value.trim();
+    const provincia = document.getElementById('titular-provincia').value.trim();
+    if (!localidad) {
+        setMiniEstado('cp', 'Primero extraé los datos del DNI para obtener la localidad.', 'err');
+        return;
+    }
+    setMiniEstado('cp', '<span class="spinner"></span> Buscando código postal...', '');
+
+    // Mapa de provincia → código de letra para la API del Correo
+    const provMap = {
+        'buenos aires': 'B', 'catamarca': 'K', 'chaco': 'H', 'chubut': 'U',
+        'cordoba': 'X', 'córdoba': 'X', 'corrientes': 'W', 'entre rios': 'E',
+        'entre ríos': 'E', 'formosa': 'P', 'jujuy': 'Y', 'la pampa': 'L',
+        'la rioja': 'F', 'mendoza': 'M', 'misiones': 'N', 'neuquen': 'Q',
+        'neuquén': 'Q', 'rio negro': 'R', 'río negro': 'R', 'salta': 'A',
+        'san juan': 'J', 'san luis': 'D', 'santa cruz': 'Z', 'santa fe': 'S',
+        'santiago del estero': 'G', 'tierra del fuego': 'V', 'tucuman': 'T', 'tucumán': 'T',
+        'ciudad autonoma de buenos aires': 'C', 'caba': 'C'
+    };
+
+    const provKey = provincia.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const provCod = provMap[provKey] || provMap[provincia.toLowerCase()] || 'T';
+
+    try {
+        const url = `https://www.correoargentino.com.ar/consultas/cpa/obtener_localidades/${provCod}?localidad=${encodeURIComponent(localidad)}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Sin respuesta del Correo');
+        const data = await resp.json();
+
+        if (data && data.length > 0) {
+            // Tomar el primer resultado
+            const cp = data[0].CodigoPostal || data[0].codigo_postal || data[0].cp || Object.values(data[0])[0];
+            if (cp) {
+                document.getElementById('titular-cp').value = cp;
+                document.getElementById('titular-cp').classList.add('auto-filled');
+                setMiniEstado('cp', `✓ CP encontrado: ${cp}`, 'ok');
+            } else {
+                setMiniEstado('cp', 'No se pudo extraer el CP. Ingresalo manualmente.', 'err');
+            }
+        } else {
+            setMiniEstado('cp', 'Localidad no encontrada. Ingresá el CP manualmente.', 'err');
+        }
+    } catch(e) {
+        // Si la API del Correo falla por CORS, usar Gemini como fallback
+        try {
+            const prompt = `¿Cuál es el código postal (4 dígitos) de ${localidad}, ${provincia}, Argentina? Respondé ÚNICAMENTE con el número de 4 dígitos, sin texto adicional.`;
+            const res = await callGemini([{ text: prompt }]);
+            const cp = res.trim().replace(/[^0-9]/g, '').substring(0, 4);
+            if (cp.length === 4) {
+                document.getElementById('titular-cp').value = cp;
+                document.getElementById('titular-cp').classList.add('auto-filled');
+                setMiniEstado('cp', `✓ CP encontrado: ${cp}`, 'ok');
+            } else {
+                throw new Error('CP inválido');
+            }
+        } catch(e2) {
+            setMiniEstado('cp', 'No se pudo obtener el CP. Ingresalo manualmente.', 'err');
+        }
+    }
 }
 
 // ── Helpers ──
