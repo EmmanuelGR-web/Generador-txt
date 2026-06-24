@@ -651,7 +651,7 @@ async function calcularAporte() {
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
     const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
-Extraé el valor del campo "O.S.P.R.y E.R.A. 3%" (o similar: descuento obra social 3%) de ${imagenes.length===1?'la boleta':'cada boleta'}.
+Extraé el valor del campo "O.S.P.R.y E.R.A. 3%" (o similar: descuento obra social 3%, obra social, obra social no rem.) de ${imagenes.length===1?'la boleta':'cada boleta'}.
 También extraé: nombre del empleador, CUIT, domicilio del empleador, CUIL del trabajador.
 Respondé ÚNICAMENTE con este JSON (sin markdown):
 {"boleta1":27711.76,"boleta2":24970.94,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
