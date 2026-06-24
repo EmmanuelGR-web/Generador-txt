@@ -462,7 +462,7 @@ async function extraerDNI(quien) {
 
     const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
 Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
-{"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
+{"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20123456789","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
 Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso.`;
 
     try {
