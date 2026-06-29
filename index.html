@@ -408,9 +408,13 @@
             <label>Sueldo bruto sujeto aportes</label>
             <input type="text" id="emp-bruto" readonly>
         </div>
-        <div class="field full">
+        <div class="field">
             <label>Aporte calculado a cobrar</label>
             <input type="text" id="emp-aporte-calc" readonly>
+        </div>
+        <div class="field">
+            <label>Ganancia por ficha (250%)</label>
+            <input type="text" id="emp-ganancia-ficha" readonly style="font-weight:700;color:var(--verde)">
         </div>
     </div>
 </div>
@@ -680,8 +684,9 @@ Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, 
         document.getElementById('c-final').textContent = fmt(aporteACobrar);
 
         document.getElementById('emp-aporte-est').value = fmt(est);
-        document.getElementById('emp-bruto').value = fmt(bruto);
-        document.getElementById('emp-aporte-calc').value = fmt(aporteACobrar);
+        document.getElementById('emp-bruto').value = fmt(aporteCalc);
+        document.getElementById('emp-aporte-calc').value = fmt(aporteCalc);
+        document.getElementById('emp-ganancia-ficha').value = fmt(aporteACobrar);
 
         if (datos.empleador) setField('emp-nombre', datos.empleador);
         if (datos.cuit_empleador) setField('emp-cuit', datos.cuit_empleador);
@@ -731,6 +736,7 @@ function generarTXT() {
     const aporteEst = document.getElementById('emp-aporte-est').value.trim();
     const bruto = document.getElementById('emp-bruto').value.trim();
     const aporteCalc = document.getElementById('emp-aporte-calc').value.trim();
+    const gananciaFicha = document.getElementById('emp-ganancia-ficha').value.trim();
     const empNombre = document.getElementById('emp-nombre').value.trim();
     const empCuit = document.getElementById('emp-cuit').value.trim();
     
@@ -772,7 +778,10 @@ function generarTXT() {
     if (empCuit) txt += `*Cuit Empleador: ${empCuit}\n`;
     if (empNombre) txt += `*Empleador: ${empNombre}\n`;
     if (bruto) txt += `*Sueldo Bruto sujeto aportes: ${bruto}\n`;
-    if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}\n`;
+    if (aporteCalc) txt += `*Aporte calculado: ${aporteCalc}
+`;
+    if (gananciaFicha) txt += `*Ganancia por ficha (250%): ${gananciaFicha}
+`;
     const empDomicilio = document.getElementById('emp-domicilio').value.trim();
     if (empDomicilio) txt += `*Domicilio Empleador: ${empDomicilio}\n`;
 
