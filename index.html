@@ -391,12 +391,12 @@
     <div class="mini-estado" id="estado-boletas"></div>
 
     <div class="calculo-box" id="calculoBox">
-        <div class="calculo-row"><span>Aporte OS boleta 1</span><span id="c-b1">—</span></div>
-        <div class="calculo-row" id="c-b2-row"><span>Aporte OS boleta 2</span><span id="c-b2">—</span></div>
-        <div class="calculo-row"><span>Aporte estimado (suma)</span><span id="c-est">—</span></div>
+        <div class="calculo-row"><span>Ley 19032 boleta 1</span><span id="c-b1">—</span></div>
+        <div class="calculo-row" id="c-b2-row"><span>Ley 19032 boleta 2</span><span id="c-b2">—</span></div>
+        <div class="calculo-row"><span>Aporte OS (suma boletas)</span><span id="c-est">—</span></div>
         <div class="calculo-row"><span>Sueldo bruto (÷ 3%)</span><span id="c-bruto">—</span></div>
-        <div class="calculo-row"><span>Aporte a cobrar (7,65%)</span><span id="c-desc">—</span></div>
-        <div class="calculo-row"><span>Aporte calculado a cobrar</span><span id="c-final">—</span></div>
+        <div class="calculo-row"><span>Aporte calculado (bruto × 7,65%)</span><span id="c-desc">—</span></div>
+        <div class="calculo-row"><span>Aporte a cobrar (× 250%)</span><span id="c-final">—</span></div>
     </div>
 
     <div class="form-grid" style="margin-top:14px">
@@ -651,10 +651,10 @@ async function calcularAporte() {
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
     const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
-Extraé el valor del campo "O.S.P.R.y E.R.A. 3%" (o similar: descuento obra social 3%, obra social, obra social no rem.) de ${imagenes.length===1?'la boleta':'cada boleta'}.
+Extraé el valor del campo "Ley 19032" al 6% (o similar: ley 19032, INSSJP 3%, fondo solidario) de ${imagenes.length===1?'la boleta':'cada boleta'}. Este campo suele ser el doble del aporte OS 3%. Si no encontrás "Ley 19032", tomá el campo de obra social más alto disponible.
 También extraé: nombre del empleador, CUIT, domicilio del empleador, CUIL del trabajador.
 Respondé ÚNICAMENTE con este JSON (sin markdown):
-{"boleta1":27711.76,"boleta2":24970.94,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
+{"boleta1":81375.00,"boleta2":0,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
 Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, con punto decimal.`;
 
     try {
@@ -666,7 +666,8 @@ Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, 
         const b2 = parseFloat(datos.boleta2)||0;
         const est = b1+b2;
         const bruto = est / 0.03;
-        const final = bruto * 0.0765;
+        const aporteCalc = bruto * 0.0765;
+        const aporteACobrar = aporteCalc * 2.5;
 
         document.getElementById('calculoBox').classList.add('visible');
         document.getElementById('c-b1').textContent = fmt(b1);
@@ -675,12 +676,12 @@ Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, 
         document.getElementById('c-b2').textContent = fmt(b2);
         document.getElementById('c-est').textContent = fmt(est);
         document.getElementById('c-bruto').textContent = fmt(bruto);
-        document.getElementById('c-desc').textContent = fmt(final);
-        document.getElementById('c-final').textContent = fmt(final);
+        document.getElementById('c-desc').textContent = fmt(aporteCalc);
+        document.getElementById('c-final').textContent = fmt(aporteACobrar);
 
         document.getElementById('emp-aporte-est').value = fmt(est);
         document.getElementById('emp-bruto').value = fmt(bruto);
-        document.getElementById('emp-aporte-calc').value = fmt(final);
+        document.getElementById('emp-aporte-calc').value = fmt(aporteACobrar);
 
         if (datos.empleador) setField('emp-nombre', datos.empleador);
         if (datos.cuit_empleador) setField('emp-cuit', datos.cuit_empleador);
