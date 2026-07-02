@@ -654,7 +654,7 @@ async function calcularAporte() {
     const imagenes = [boletaFiles.b1];
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
-    const prompt = `Analizá esta boleta de sueldo argentina. Necesito que identifiques exactamente DOS conceptos de descuento:
+    const prompt = `Analyze this Argentine pay slip. I need you to identify exactly TWO discount concepts:
 
 1. "Obra Social 3%" — puede aparecer como "Obra Social 3%", "OS 3%", "OSPRyERA 3%", o cualquier concepto de obra social con porcentaje 3%. Generalmente tiene código 4003 o similar. NO confundir con "Ley 19032 3%" que es un concepto distinto.
 
