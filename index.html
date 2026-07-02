@@ -466,8 +466,8 @@ async function extraerDNI(quien) {
 
     const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
 Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
-{"surname_name":"SURNAME NAME","ID":"12345678","date_birth":"DD/MM/yyyy","cuil":"20123456789","address":"Calle 123","town":"City","province":"Province"}
-Si no encontrás algún campo poné null. El CUIL generalmente está en el dorso.`;
+{"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
+Si no encontrás algún campo poné null. El CUIL está en el dorso del DNI.`;
 
     try {
         const parts = [
@@ -655,10 +655,13 @@ async function calcularAporte() {
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
     const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
-Extraé el valor del campo "Ley 19032" al 6% (o similar: ley 19032, INSSJP 3%, fondo solidario) de ${imagenes.length===1?'la boleta':'cada boleta'}. Este campo suele ser el doble del aporte OS 3%. Si no encontrás "Ley 19032", tomá el campo de obra social más alto disponible.
+Analizá la boleta de sueldo y encontrá ESTOS DOS campos específicos:
+1. "Obra Social 3%" (o "Obra Social", cod 4003 o similar) 
+2. "Obra Social Adicional" (o "Obra Social Adic.", cod 4019 o similar, o "STVISEP TUC")
+Sumá ambos valores para obtener el aporte total de obra social.
 También extraé: nombre del empleador, CUIT, domicilio del empleador, CUIL del trabajador.
 Respondé ÚNICAMENTE con este JSON (sin markdown):
-{"boleta1":81375.00,"boleta2":0,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
+{"os_principal":32509.50,"os_adicional":15720.96,"boleta2_os_principal":0,"boleta2_os_adicional":0,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
 Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, con punto decimal.`;
 
     try {
