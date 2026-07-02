@@ -654,23 +654,23 @@ async function calcularAporte() {
     const imagenes = [boletaFiles.b1];
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
-    const prompt = `Analizá ${imagenes.length===1?'esta boleta de sueldo':'estas dos boletas de sueldo quincenales'}.
-Analizá la boleta de sueldo y encontrá ESTOS DOS campos específicos:
-1. "Obra Social 3%" (o "Obra Social", cod 4003 o similar) 
-2. "Obra Social Adicional" (o "Obra Social Adic.", cod 4019 o similar, o "STVISEP TUC")
-Sumá ambos valores para obtener el aporte total de obra social.
-También extraé: nombre del empleador, CUIT, domicilio del empleador, CUIL del trabajador.
-Respondé ÚNICAMENTE con este JSON (sin markdown):
-{"os_principal":32509.50,"os_adicional":15720.96,"boleta2_os_principal":0,"boleta2_os_adicional":0,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 1234 San Miguel de Tucuman","cuil_titular":"20-27664943-5"}
-Si no hay boleta2 o no aplica, poné 0. Valores numéricos sin puntos de miles, con punto decimal.`;
+    const prompt = `Analizá esta boleta de sueldo argentina.
+Tu tarea: encontrá TODOS los descuentos relacionados a obra social en la columna de descuentos.
+Buscá líneas que contengan palabras como: "Obra Social", "OS", "OSECAC", "OSDE", "OSMATA", "OSPRyERA", "STVISEP", "Obra Social Adic", o cualquier concepto de obra social.
+Sumá todos esos valores juntos para obtener el aporte total de obra social de esta boleta.
+También extraé: nombre del empleador, CUIT del empleador, domicilio del empleador, CUIL del trabajador.
+Respondé ÚNICAMENTE con este JSON exacto (sin markdown, sin explicaciones):
+{"aporte_os":48230.46,"empleador":"Nombre SA","cuit_empleador":"30-12345678-9","domicilio_empleador":"Calle 123 Ciudad","cuil_titular":"20-12345678-9"}
+Valores numéricos sin puntos de miles, usando punto decimal. Si no encontrás un campo poné null.`;
 
     try {
         const parts = [{ text: prompt }, ...imagenes.map(i=>({inlineData:{mimeType:i.mimeType,data:i.data}}))];
         const res = await callGemini(parts);
+        console.log('Respuesta Gemini boleta:', res);
         const datos = JSON.parse(res.replace(/```json|```/g,'').trim());
 
-        const b1 = parseFloat(datos.boleta1)||0;
-        const b2 = parseFloat(datos.boleta2)||0;
+        const b1 = parseFloat(datos.aporte_os)||0;
+        const b2 = 0;
         const est = b1+b2;
         const bruto = est / 0.03;
         const aporteCalc = bruto * 0.0765;
