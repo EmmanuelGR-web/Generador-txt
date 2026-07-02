@@ -242,7 +242,17 @@
     <div class="card-title">Datos del Titular</div>
 
     <!-- DNI upload -->
-    <div class="dni-upload-pair">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button onclick="setModosDNI('titular','doble')" id="modo-titular-doble"
+            style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--verde);background:var(--verde);color:#fff;font-weight:700;font-size:0.8rem;cursor:pointer">
+            🪪 Frente + Dorso (2 fotos)
+        </button>
+        <button onclick="setModosDNI('titular','unica')" id="modo-titular-unica"
+            style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--verde);background:var(--verde-claro);color:var(--verde);font-weight:700;font-size:0.8rem;cursor:pointer">
+            📄 Ambos lados (1 foto)
+        </button>
+    </div>
+    <div id="dni-doble-titular" class="dni-upload-pair">
         <div class="dni-slot" id="slot-titular-frente">
             <input type="file" accept="image/*" onchange="handleDNI('titular','frente',event)">
             <div class="slot-icon">🪪</div>
@@ -254,6 +264,14 @@
             <div class="slot-icon">🪪</div>
             <div class="slot-label">Dorso del DNI</div>
             <div class="slot-sub">CUIL, domicilio</div>
+        </div>
+    </div>
+    <div id="dni-unica-titular" style="display:none">
+        <div class="dni-slot" id="slot-titular-unica">
+            <input type="file" accept="image/*" onchange="handleDNI('titular','unica',event)">
+            <div class="slot-icon">📄</div>
+            <div class="slot-label">Foto con ambos lados del DNI</div>
+            <div class="slot-sub">Frente y dorso en una sola imagen</div>
         </div>
     </div>
     <button class="btn-extraer" id="btn-extraer-titular" onclick="extraerDNI('titular')" disabled>
@@ -433,6 +451,28 @@ let familiares = []; // [{id, parentesco, frente, dorso, campos:{}}]
 let nextId = 0;
 
 // ── DNI handling ──
+function setModosDNI(quien, modo) {
+    const dobleDiv = document.getElementById(`dni-doble-${quien}`);
+    const unicaDiv = document.getElementById(`dni-unica-${quien}`);
+    const btnDoble = document.getElementById(`modo-${quien}-doble`);
+    const btnUnica = document.getElementById(`modo-${quien}-unica`);
+    if (!dobleDiv || !unicaDiv) return;
+
+    if (modo === 'unica') {
+        dobleDiv.style.display = 'none';
+        unicaDiv.style.display = 'block';
+        if (btnDoble) { btnDoble.style.background = 'var(--verde-claro)'; btnDoble.style.color = 'var(--verde)'; }
+        if (btnUnica) { btnUnica.style.background = 'var(--verde)'; btnUnica.style.color = '#fff'; }
+    } else {
+        dobleDiv.style.display = 'grid';
+        unicaDiv.style.display = 'none';
+        if (btnDoble) { btnDoble.style.background = 'var(--verde)'; btnDoble.style.color = '#fff'; }
+        if (btnUnica) { btnUnica.style.background = 'var(--verde-claro)'; btnUnica.style.color = 'var(--verde)'; }
+    }
+    if (!dniFiles[quien]) dniFiles[quien] = {};
+    dniFiles[quien].modo = modo;
+}
+
 function handleDNI(quien, lado, event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -450,7 +490,8 @@ function handleDNI(quien, lado, event) {
 function actualizarBtnExtraer(quien) {
     const d = dniFiles[quien];
     const btn = document.getElementById(`btn-extraer-${quien}`);
-    if (btn) btn.disabled = !(d && d.frente); // al menos frente
+    // Habilitar si tiene frente (modo doble) o unica (modo único)
+    if (btn) btn.disabled = !(d && (d.frente || d.unica));
 }
 
 async function extraerDNI(quien) {
@@ -461,10 +502,16 @@ async function extraerDNI(quien) {
     const btn = document.getElementById(`btn-extraer-${quien}`);
     if (btn) btn.disabled = true;
 
-    const imagenes = [d.frente];
-    if (d.dorso) imagenes.push(d.dorso);
+    let imagenes;
+    if (d.modo === 'unica' && d.unica) {
+        imagenes = [d.unica];
+    } else {
+        imagenes = [d.frente];
+        if (d.dorso) imagenes.push(d.dorso);
+    }
 
-    const prompt = `Analizá ${imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
+    const esUnica = d.modo === 'unica';
+    const prompt = `Analizá ${esUnica ? 'esta imagen que contiene ambos lados del DNI argentino' : imagenes.length === 2 ? 'el frente y el dorso' : 'el frente'} del DNI argentino.
 Extraé los siguientes datos y respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
 {"apellido_nombre":"APELLIDO NOMBRE","dni":"12345678","fecha_nacimiento":"DD/MM/AAAA","cuil":"20-12345678-9","domicilio":"Calle 123","localidad":"Ciudad","provincia":"Provincia"}
 Si no encontrás algún campo poné null. El CUIL está en el dorso del DNI.`;
@@ -552,7 +599,17 @@ function renderFamiliares() {
                 </select>
                 <button class="btn-remove" onclick="removerFamiliar('${f.id}')">✕ Quitar</button>
             </div>
-            <div class="dni-upload-pair">
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <button onclick="setModosDNI('${f.id}','doble')" id="modo-${f.id}-doble"
+                    style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--verde);background:var(--verde);color:#fff;font-weight:700;font-size:0.75rem;cursor:pointer">
+                    🪪 2 fotos
+                </button>
+                <button onclick="setModosDNI('${f.id}','unica')" id="modo-${f.id}-unica"
+                    style="flex:1;padding:6px;border-radius:8px;border:1.5px solid var(--verde);background:var(--verde-claro);color:var(--verde);font-weight:700;font-size:0.75rem;cursor:pointer">
+                    📄 1 foto
+                </button>
+            </div>
+            <div id="dni-doble-${f.id}" class="dni-upload-pair">
                 <div class="dni-slot ${f.frente?'loaded':''}" id="slot-${f.id}-frente">
                     <input type="file" accept="image/*" onchange="handleDNI('${f.id}','frente',event)">
                     <div class="slot-icon">🪪</div>
@@ -562,6 +619,13 @@ function renderFamiliares() {
                     <input type="file" accept="image/*" onchange="handleDNI('${f.id}','dorso',event)">
                     <div class="slot-icon">🪪</div>
                     <div class="slot-label">Dorso DNI</div>
+                </div>
+            </div>
+            <div id="dni-unica-${f.id}" style="display:none">
+                <div class="dni-slot" id="slot-${f.id}-unica">
+                    <input type="file" accept="image/*" onchange="handleDNI('${f.id}','unica',event)">
+                    <div class="slot-icon">📄</div>
+                    <div class="slot-label">Ambos lados en 1 foto</div>
                 </div>
             </div>
             <button class="btn-extraer" id="btn-extraer-${f.id}" onclick="extraerDNI('${f.id}')" ${f.frente?'':'disabled'}>
@@ -654,7 +718,7 @@ async function calcularAporte() {
     const imagenes = [boletaFiles.b1];
     if (boletaFiles.b2) imagenes.push(boletaFiles.b2);
 
-    const prompt = `Analyze this Argentine pay slip. I need you to identify exactly TWO discount concepts:
+    const prompt = `Analizá esta boleta de sueldo argentina. Necesito que identifiques exactamente DOS conceptos de descuento:
 
 1. "Obra Social 3%" — puede aparecer como "Obra Social 3%", "OS 3%", "OSPRyERA 3%", o cualquier concepto de obra social con porcentaje 3%. Generalmente tiene código 4003 o similar. NO confundir con "Ley 19032 3%" que es un concepto distinto.
 
